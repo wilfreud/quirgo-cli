@@ -1,13 +1,14 @@
 {
   "name": "quirgo",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A CLI tool to automate repositories secrets and variables setting via the Gihub API",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts",
-    "test": "node src/test/index.ts"
+    "test": "node src/test/index.ts",
+    "lint": "tsc"
   },
   "keywords": [],
   "author": "wilfreud",
@@ -17,6 +18,7 @@
     "octokit": "^3.1.2"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.27.1",
     "@octokit/types": "^12.6.0",
     "@types/libsodium-wrappers": "^0.7.13",
     "tsup": "^8.0.2",
