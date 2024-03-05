@@ -2,10 +2,11 @@
   "name": "quirgo",
   "version": "1.0.0",
   "description": "A CLI tool to automate repositories secrets and variables setting via the Gihub API",
-  "main": "index.js",
-  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "build": "tsup src/index.ts --format esm,cjs --dts",
     "test": "node src/test/index.ts"
   },
   "keywords": [],
