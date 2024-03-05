@@ -1,10 +1,14 @@
-import { RepoManager } from "..";
-import { Configuration } from "../types/types";
+import { RepoManager } from "../../dist/index.mjs";
 
-const RM = new RepoManager("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");
+const token = process.env.GITHUB_ACCESS_TOKEN;
 
-const config: Configuration = {
-  repositoryName: "not-a-portflio",
+if (token === undefined) {
+  throw new Error("Can't connect, invalid access token");
+}
+
+const RM = new RepoManager("");
+const config = {
+  repositoryName: "not-a-portfolio",
   repositoryOwner: "wilfreud",
   verbose: true,
 };

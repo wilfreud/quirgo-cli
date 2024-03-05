@@ -5,3 +5,5 @@ index.js
 
 node_modules
 dist
+.env*
+config.env
