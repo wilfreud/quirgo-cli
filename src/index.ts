@@ -1,7 +1,7 @@
 import { Octokit } from "octokit";
 import { Configuration } from "./types/types";
 import sodium from "libsodium-wrappers";
-import { OctokitResponse, RequestInterface } from "@octokit/types";
+import { OctokitResponse } from "@octokit/types";
 
 export class RepoManager {
   private app: Octokit;
@@ -10,8 +10,15 @@ export class RepoManager {
     this.app = new Octokit({ auth: githubAccessToken });
   }
 
-  // Create a variable in your repository.
-  // This method is used only for creation, and not update.
+  /**
+   * Create a variable in the repository for GitHub Actions.
+   * This method is used only for creation, not for updating existing variables.
+   *
+   * @param {Configuration} config The configuration object containing repository details.
+   * @param {string} variableName The name of the variable to create.
+   * @param {string} variableValue The value of the variable to create.
+   * @returns {Promise<OctokitResponse<any>>} A Promise containing the Octokit response.
+   */
   public async createRepoVariable(
     config: Configuration,
     variableName: string,
@@ -28,7 +35,15 @@ export class RepoManager {
     );
   }
 
-  // Update a variable in your repository.
+  /**
+   * Update a variable in the repository for GitHub Actions.
+   * This method is used only for creation, not for updating existing variables.
+   *
+   * @param {Configuration} config The configuration object containing repository details.
+   * @param {string} variableName The name of the variable to create.
+   * @param {string} variableValue The value of the variable to create.
+   * @returns {Promise<OctokitResponse<any>>} A Promise containing the Octokit response.
+   */
   public async updateRepoVariable(
     config: Configuration,
     variableName: string,
@@ -46,6 +61,14 @@ export class RepoManager {
   }
 
   // Create/Update a repository secret
+  /**
+   * Create or update a secret in the repository for GitHub Actions.
+   * This method is used only for creation, not for updating existing variables.
+   * @param {Configuration} config The configuration object containing repository details.
+   * @param {string} secretName The name of the variable to create.
+   * @param {string} secreteValue The value of the variable to create.
+   * @returns {Promise<void | OctokitResponse<any>>} A Promise containing the Octokit response.
+   */
   public async setRepoSecret(
     config: Configuration,
     secretName: string,
