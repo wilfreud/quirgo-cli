@@ -1,8 +1,9 @@
 - Replace OctokitResponse<any> by proper typing!
 - Consider adding some jsdoc maybe? bruh, please figure out how to do a production-grade package!
 - Consider writing tests (unit tests and whatnot)
+- Add warning about gitbub's rate limit
 
 -- CLI --
-Main Packages: [chalk, cli-table3, commander, chokidar, inquirer, node-emoji, ora]
+Main Packages: [chalk, cli-table3, commander, chokidar, inquirer, node-emoji, ora, shelljs]
 Git: [husky, commtlint]
 Other: [gulp, jest]
