@@ -1,4 +1,4 @@
-import { RepoManager } from "../../dist/index.mjs";
+import { RepoManager } from "../dist/index.cjs";
 
 const token = process.env.GITHUB_ACCESS_TOKEN;
 
@@ -6,7 +6,7 @@ if (token === undefined) {
   throw new Error("Can't connect, invalid access token");
 }
 
-const RM = new RepoManager("");
+const RM = new RepoManager(token);
 const config = {
   repositoryName: "not-a-portfolio",
   repositoryOwner: "wilfreud",
