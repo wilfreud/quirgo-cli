@@ -34,6 +34,14 @@ quirgo-cli
 
 Contributions are welcome.
 
+### Env variables parsing
+
+Are supported the following file formats
+
+- JSON
+<!-- Here add the  syntax that needs to ne respected -->
+- .env
+
 ## License
 
 Quirgo is [MIT licensed](LICENSE).

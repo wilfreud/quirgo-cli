@@ -23,10 +23,10 @@
 
 import { envParser, jsonParser } from "../dist/lib/parsing/parsers.cjs";
 
-// const ff = envParser(".env");
-// console.log(ff);
+const fft = envParser("test/data/parsing.env");
+console.log("Env parsing:: ", fft);
 
 const ff = jsonParser("test/data/test.json", {
   verbose: true,
 });
-console.log(ff);
+console.log("JSON parsing:: ", ff);
