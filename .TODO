@@ -5,6 +5,6 @@
 - Changeset to major version when basic cli is active
 
 -- CLI --
-Main Packages: [chalk, cli-table3, commander, chokidar, inquirer, node-emoji, ora, shelljs]
+Main Packages: [chalk, cli-table3, commander, chokidar, inquirer, node-emoji, ora, shelljs, figlet]
 Git: [husky, commtlint]
 Other: [gulp, jest]

@@ -1,5 +1,5 @@
 import { Octokit } from "octokit";
-import { Configuration } from "./types/types";
+import { Configuration } from "@/types/main";
 import sodium from "libsodium-wrappers";
 import { OctokitResponse } from "@octokit/types";
 

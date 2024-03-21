@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "build": "tsup src/**/*.ts --format esm,cjs --dts",
-    "test": "node --env-file=config.env src/test/test.js",
+    "test": "node --env-file=config.env test/test.js",
     "lint": "tsc"
   },
   "keywords": [],
@@ -16,6 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "commander": "^12.0.0",
+    "dotenv": "^16.4.5",
     "libsodium-wrappers": "^0.7.13",
     "octokit": "^3.1.2"
   },
@@ -23,6 +24,7 @@
     "@changesets/cli": "^2.27.1",
     "@octokit/types": "^12.6.0",
     "@types/libsodium-wrappers": "^0.7.13",
+    "@types/node": "^20.11.30",
     "tsup": "^8.0.2",
     "typescript": "^5.3.3"
   }
