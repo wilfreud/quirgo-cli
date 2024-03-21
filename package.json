@@ -9,6 +9,7 @@
   "scripts": {
     "build": "tsup src/**/*.ts --format esm,cjs --dts",
     "test": "node --env-file=config.env test/test.js",
+    "test:prod": "node test/test.js",
     "lint": "tsc"
   },
   "keywords": [],
