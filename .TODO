@@ -3,6 +3,8 @@
 - Consider writing tests (unit tests and whatnot)
 - Add warning about gitbub's rate limit
 - Changeset to major version when basic cli is active
+- Add logger
+- Natively parse .env (steal snippet from dotenv package)
 
 -- CLI --
 Main Packages: [chalk, cli-table3, commander, chokidar, inquirer, node-emoji, ora, shelljs, figlet]

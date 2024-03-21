@@ -21,7 +21,12 @@
 //   .then((e) => console.log(e))
 //   .catch((err) => console.error(err));
 
-import { envParser } from "../dist/lib/parsing/env/env-parse.cjs";
+import { envParser, jsonParser } from "../dist/lib/parsing/parsers.cjs";
 
-const ff = envParser(".env");
+// const ff = envParser(".env");
+// console.log(ff);
+
+const ff = jsonParser("test/data/test.json", {
+  verbose: true,
+});
 console.log(ff);
