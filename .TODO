@@ -5,6 +5,7 @@
 - Changeset to major version when basic cli is active
 - Add logger
 - Natively parse .env (steal snippet from dotenv package)
+- Give credits (copy/pasted code from prefixes.ts)
 
 -- CLI --
 Main Packages: [chalk, cli-table3, commander, chokidar, inquirer, node-emoji, ora, shelljs, figlet]
