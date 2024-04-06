@@ -1,6 +1,7 @@
 # Custom
 test/data/dataset.json
 index.js
+package-lock.json
 
 
 node_modules

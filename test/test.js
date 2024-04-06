@@ -1,5 +1,7 @@
-import { RepoManager } from "../dist/lib/repository-manager/index.cjs";
+//import { RepoManager } from "../dist/lib/repository-manager/index.cjs";
 // import dataset from "./data/dataset.json" assert { type: "json" };
+
+import {envParser, jsonParser} from "../dist/lib/parsing/parsers.js";
 
 const token = process.env.GITHUB_ACCESS_TOKEN;
 
