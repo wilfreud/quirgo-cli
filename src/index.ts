@@ -5,6 +5,11 @@ import { Command } from "commander";
 // Declare the program
 const program = new Command("quirgo");
 
+/**
+ * If no .env file provided,it means only one key-value pair is provided
+ * Use console.table() to display listed secrets/variables
+ */
+
 // Add options
 program
   .version(
@@ -15,25 +20,33 @@ program
   .description(
     "A simple CLI to manage your GitHub repositories secrets and variables."
   )
-  .option("-V, --verbose", "Verbose output");
+  .option("--verbose", "Verbose output")
+  .option("-t, --token <token>", "GitHub access token");
 
 // Add commands
 program
   .command("vars")
   .description("Manage repository variables")
-  .argument("<file>", "Path to a .env file to parse")
-  .action((file: string) => {
-    console.log(`Processing ${file}...`);
-  });
+  // .argument("<action>", "create, udpate or remove a variable")
+  .alias("v")
+  .option("-f, --file <filepath>", "Path to a .env file to parse")
+  .command("list", "List all variables")
+  .command("create <key> <value>", "Create a new variable")
+  .command("update <key <value>", "Update an existing variable")
+  .command("remove <key>", "Remove an existing variable");
 
 program
   .command("secrets")
-  .description("Manage repository secret")
-  .argument("<set>", "Create a new secret")
-  .argument("<delete>", "Delete a secret");
+  .description("Manage repository secrets")
+  .alias("s")
+  .option("-f, --file <filepath>", "Path to a .env file to parse")
+  .command("list", "List all secrets")
+  .command("set <key> <value>", "Set a new secret")
+  .command("remove <key>", "Remove an existing secret");
 
 // Execute CLI with arguments
 program.parse(process.argv);
 
 // Treatment here
 const options = program.opts();
+console.table(options);
