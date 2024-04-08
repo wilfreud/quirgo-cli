@@ -6,6 +6,7 @@
 - Add logger
 - Natively parse .env (steal snippet from dotenv package)
 - Give credits (copy/pasted code from prefixes.ts)
+- replace console.error for all --verbose with color (chalk)
 
 -- CLI --
 Main Packages: [chalk, cli-table3, commander, chokidar, inquirer, node-emoji, ora, shelljs, figlet]
