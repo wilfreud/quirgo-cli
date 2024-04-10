@@ -9,6 +9,6 @@
 - replace console.error for all --verbose with color (chalk)
 
 -- CLI --
-Main Packages: [chalk, cli-table3, commander, chokidar, inquirer, node-emoji, ora, shelljs, figlet]
+Main Packages: [chalk, chokidar, inquirer, node-emoji, ora, shelljs, figlet]
 Git: [husky, commtlint]
 Other: [gulp, jest]

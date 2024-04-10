@@ -3,6 +3,7 @@
 import { Command } from "commander";
 import { RepoManager } from "./lib/repository-manager";
 import { Configuration as RepositoryManagerConfiguration } from "@/types/repository-manager";
+import { envParser, jsonParser } from "./lib/parsers";
 
 // Declare the program
 const program = new Command("quirgo");
@@ -13,6 +14,7 @@ const config: RepositoryManagerConfiguration = {
   repositoryName: "",
   repositoryOwner: "",
 };
+let parsedKeyValues: ReturnType<typeof envParser> = {};
 
 /**
  * If no .env file provided,it means only one key-value pair is provided
@@ -30,22 +32,35 @@ program
     "A simple CLI to manage your GitHub repositories secrets and variables."
   )
   .option("--verbose", "Verbose output")
-  .option("-t, --token", "GitHub access token")
+  .option("-t, --token <string>", "GitHub access token")
   .action((opts) => {
     if (opts.token) {
       repoManager = new RepoManager(opts.token);
     }
   })
-  .option("-r, --repo", "GitHub repository name")
+  .option("-r, --repo <string>", "GitHub repository name")
   .action((opts) => {
     if (opts.repo) {
       config.repositoryName = opts.repo;
     }
   })
-  .option("-o, --owner", "GitHub repository owner")
+  .option("-o, --owner <string>", "GitHub repository owner")
   .action((opts) => {
     if (opts.owner) {
       config.repositoryOwner = opts.owner;
+    }
+  })
+  .option("-e, --env <string>", "Path to a .env file to parse")
+  .action((opts) => {
+    console.log("parsing....");
+    if (opts.env) {
+      parsedKeyValues = envParser(opts.env);
+    }
+  })
+  .option("-j, --json", "Path to a JSON file to parse")
+  .action((opts) => {
+    if (opts.json) {
+      parsedKeyValues = jsonParser(opts.json);
     }
   });
 
@@ -84,15 +99,27 @@ program.on("*", () => {
 });
 
 // Execute CLI with arguments
-program.parse(process.argv);
+program.parse();
 
 // Treatment here
 const options = program.opts();
-if (program.args.length === 0) {
-  program.help();
-}
+// if (program.args.length === 0) {
+//   program.help();
+// }
 
+console.log("end of program");
+// console.log(config);
 console.table(options);
+
+config.repositoryName = options.repo || "";
+config.repositoryOwner = options.owner || "";
+config.verbose = true;
+repoManager = new RepoManager(options.token);
+parsedKeyValues = envParser(options.env);
+for (const key in parsedKeyValues) {
+  // console.log(key, program.getOptionValue(key));
+  repoManager?.createRepoVariable(config, key, parsedKeyValues[key] || "");
+}
 
 /**
  * Next  Step: get input from user
