@@ -4,6 +4,9 @@ import { Command } from "commander";
 import { RepoManager } from "./lib/repository-manager";
 import { Configuration as RepositoryManagerConfiguration } from "@/types/repository-manager";
 import { envParser, jsonParser } from "./lib/parsers";
+import { BANNER } from "./lib/ui/banner";
+
+console.log(BANNER);
 
 // Declare the program
 const program = new Command("quirgo");
@@ -103,22 +106,8 @@ program.parse();
 
 // Treatment here
 const options = program.opts();
-// if (program.args.length === 0) {
-//   program.help();
-// }
-
-console.log("end of program");
-// console.log(config);
-console.table(options);
-
-config.repositoryName = options.repo || "";
-config.repositoryOwner = options.owner || "";
-config.verbose = true;
-repoManager = new RepoManager(options.token);
-parsedKeyValues = envParser(options.env);
-for (const key in parsedKeyValues) {
-  // console.log(key, program.getOptionValue(key));
-  repoManager?.createRepoVariable(config, key, parsedKeyValues[key] || "");
+if (program.args.length === 0) {
+  program.help();
 }
 
 /**
