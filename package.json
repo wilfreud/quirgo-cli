@@ -9,7 +9,7 @@
     "quirgo": "./dist/index.js"
   },
   "scripts": {
-    "link-cli": "pnpm --global unlink quirgo-cli && pnpm link --global",
+    "init": "pnpm --global unlink quirgo-cli && pnpm link --global",
     "build": "tsup src/**/*.ts --format esm,cjs --dts",
     "dev": "tsc -w",
     "test": "node --env-file=config.env test/test.js",
@@ -20,7 +20,7 @@
   "author": "wilfreud",
   "license": "MIT",
   "dependencies": {
-    "chalk": "^5.3.0",
+    "chalk": "^4.1.2",
     "cli-table3": "^0.6.4",
     "commander": "^12.0.0",
     "dotenv": "^16.4.5",
