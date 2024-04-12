@@ -4,22 +4,20 @@ Quirgo is a tool built to easily configure repositories' secrets and variables.
 
 ## Installation
 
-If you're using npm
-
-```
-npm install -g quirgo-cli
-```
-
-If you're using yarn
-
 ```
 yarn add -g quirgo-cli
 ```
 
-If you're using pnpm
+or
 
 ```
 pnpm add -g quirgo-cli
+```
+
+or
+
+```
+npm install -g quirgo-cli
 ```
 
 ## Usage
@@ -32,7 +30,8 @@ quirgo-cli
 
 ### Commands
 
-Contributions are welcome.
+- vars
+- secrets
 
 ### Env variables parsing
 

@@ -6,6 +6,7 @@ import { Configuration as RepositoryManagerConfiguration } from "@/types/reposit
 import { envParser, jsonParser } from "./lib/parsers";
 import { BANNER } from "./lib/ui/banner";
 import chalk from "chalk";
+import { password, select, input } from "@inquirer/prompts";
 
 console.log(BANNER);
 
@@ -112,3 +113,48 @@ program.parse(process.argv);
 // Treatment here
 const options = program.opts();
 console.table(options);
+
+async function fn() {
+  // Ask for token if not provided
+  if (!repoManager) {
+    const ghToken = await password({
+      message: "Enter your GitHub access token: ",
+      theme: {
+        prefix: "🔑",
+      },
+      mask: "*",
+    });
+    repoManager = new RepoManager(ghToken);
+  }
+
+  // Ask for repository name if not provided
+  if (!config.repositoryName) {
+    const repoName = await input({
+      message: "Enter the repository name: ",
+      theme: {
+        prefix: "📦",
+      },
+    });
+    config.repositoryName = repoName;
+  }
+
+  // Ask for repository owner if not provided
+  if (!config.repositoryOwner) {
+    const repoOwner = await input({
+      message: "Enter the repository owner: ",
+      theme: {
+        prefix: "👤",
+      },
+    });
+    config.repositoryOwner = repoOwner;
+  }
+}
+
+fn()
+  .then(() => {
+    console.log(chalk.green("All done 🚀"));
+  })
+  .catch((err) => {
+    console.error(chalk.red(err));
+    process.exit(1);
+  });

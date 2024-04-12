@@ -1,5 +1,4 @@
 - Replace OctokitResponse<any> by proper typing!
-- Consider adding some jsdoc maybe? bruh, please figure out how to do a production-grade package!
 - Consider writing tests (unit tests and whatnot)
 - Add warning about gitbub's rate limit
 - Changeset to major version when basic cli is active
@@ -7,6 +6,9 @@
 - Natively parse .env (steal snippet from dotenv package)
 - Give credits (copy/pasted code from prefixes.ts)
 - replace console.error for all --verbose with color (chalk)
+- Octokit
+  - Check if user is authenticated
+  - use these methds: .this.app.rest.actions.createOrUpdateRepoSecret({})
 
 -- CLI --
 Main Packages: [chalk, chokidar, inquirer, node-emoji, ora, shelljs, figlet]
