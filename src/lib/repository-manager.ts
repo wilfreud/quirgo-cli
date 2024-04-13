@@ -3,11 +3,31 @@ import { Configuration } from "@/types/repository-manager";
 import sodium from "libsodium-wrappers";
 import { OctokitResponse } from "@octokit/types";
 
+/**
+ * TODO: REFACTOR -> rwrite methods with rest requests
+ * Faster & shorter
+ * Tag commit as "refactor"
+ */
+
 export class RepoManager {
   private app: Octokit;
 
   constructor(githubAccessToken: string) {
     this.app = new Octokit({ auth: githubAccessToken });
+  }
+
+  /**
+   * List variables in the repository for GitHub Actions.
+   * @param {Configuration} config The configuration object containing repository details.
+   * @returns {Promise<OctokitResponse<ReturnType<typeof this.app.rest.actions.listRepoVariables>>>} A Promise containing the Octokit response.
+   */
+  public async listRepoVariables(
+    config: Configuration
+  ): Promise<ReturnType<typeof this.app.rest.actions.listRepoVariables>> {
+    return await this.app.rest.actions.listRepoVariables({
+      owner: config.repositoryOwner,
+      repo: config.repositoryName,
+    });
   }
 
   /**

@@ -9,7 +9,7 @@
     "quirgo": "./dist/index.js"
   },
   "scripts": {
-    "init": "pnpm --global unlink quirgo-cli && pnpm link --global",
+    "init-cli": "pnpm --global unlink quirgo && pnpm link --global",
     "build": "tsup src/**/*.ts --format esm,cjs --dts",
     "dev": "tsc -w",
     "test": "node --env-file=config.env test/test.js",

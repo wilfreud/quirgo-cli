@@ -1,4 +1,4 @@
-#!/usr/bin/dev node
+#!/usr/bin/env node
 
 import { Command } from "commander";
 import { RepoManager } from "./lib/repository-manager";
@@ -112,7 +112,6 @@ program.parse(process.argv);
 
 // Treatment here
 const options = program.opts();
-console.table(options);
 
 async function fn() {
   // Ask for token if not provided
@@ -148,6 +147,9 @@ async function fn() {
     });
     config.repositoryOwner = repoOwner;
   }
+
+  // Select action type if not provided
+  // if(options.)
 }
 
 fn()
@@ -157,4 +159,8 @@ fn()
   .catch((err) => {
     console.error(chalk.red(err));
     process.exit(1);
+  })
+  .finally(() => {
+    console.table(options);
+    console.log("================= END ================");
   });

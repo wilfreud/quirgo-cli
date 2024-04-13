@@ -9,6 +9,7 @@
 - Octokit
   - Check if user is authenticated
   - use these methds: .this.app.rest.actions.createOrUpdateRepoSecret({})
+- Add a mini logger lib file
 
 -- CLI --
 Main Packages: [chalk, chokidar, inquirer, node-emoji, ora, shelljs, figlet]
