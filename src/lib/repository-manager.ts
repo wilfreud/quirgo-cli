@@ -7,6 +7,7 @@ import { OctokitResponse } from "@octokit/types";
  * TODO: REFACTOR -> rwrite methods with rest requests
  * Faster & shorter
  * Tag commit as "refactor"
+ * TODO: check returnTypes
  */
 
 export class RepoManager {
@@ -80,64 +81,100 @@ export class RepoManager {
     );
   }
 
-  // Create/Update a repository secret
+  /**
+   * Remove a variable in the repository for GitHub Actions.
+   * @param {Configuration} config The configuration object containing repository details.
+   * @param {string} variableName The name of the variable to remove.
+   * @returns {Promise<OctokitResponse<any>>} A Promise containing the Octokit response.
+   */
+  public async removeRepoVariable(
+    config: Configuration,
+    variableName: string
+  ): Promise<OctokitResponse<any>> {
+    return await this.app.rest.actions.deleteRepoVariable({
+      owner: config.repositoryOwner,
+      repo: config.repositoryName,
+      name: variableName,
+    });
+  }
+
+  /**
+   * Retrieves a list of secrets for a repository.
+   *
+   * @param config - The configuration object containing repository owner and name.
+   * @returns A promise that resolves to the list of repository secrets.
+   */
+  public async listRepoSecrets(
+    config: Configuration
+  ): Promise<ReturnType<typeof this.app.rest.actions.listRepoSecrets>> {
+    return await this.app.rest.actions.listRepoSecrets({
+      owner: config.repositoryOwner,
+      repo: config.repositoryName,
+    });
+  }
+
   /**
    * Create or update a secret in the repository for GitHub Actions.
    * This method is used only for creation, not for updating existing variables.
    * @param {Configuration} config The configuration object containing repository details.
    * @param {string} secretName The name of the variable to create.
-   * @param {string} secreteValue The value of the variable to create.
+   * @param {string} secretValue The value of the variable to create.
    * @returns {Promise<void | OctokitResponse<any>>} A Promise containing the Octokit response.
    */
   public async setRepoSecret(
     config: Configuration,
     secretName: string,
-    secreteValue: string
+    secretValue: string
   ): Promise<void | OctokitResponse<any>> {
-    return this.app
-      .request("GET /repos/{owner}/{repo}/actions/secrets/public-key", {
-        // request repository's public key
-        owner: config.repositoryOwner,
-        repo: config.repositoryName,
-      })
-      .then((publicKeyInfos) => {
-        const { key, key_id } = publicKeyInfos.data;
+    // get repo public key
+    const encryptedValue = await this.app.rest.actions.getRepoPublicKey({
+      owner: config.repositoryOwner,
+      repo: config.repositoryName,
+    });
 
-        // encrypt secret
-        sodium.ready
-          .then(() => {
-            // Convert the secret and key to a Uint8Array.
-            let binkey = sodium.from_base64(
-              key,
-              sodium.base64_variants.ORIGINAL
-            );
-            let binsec = sodium.from_string(secreteValue);
+    // wait for sodium to be ready
+    await sodium.ready;
 
-            // Encrypt the secret using libsodium
-            let encBytes = sodium.crypto_box_seal(binsec, binkey);
+    // enncrypt secret
 
-            // Convert the encrypted Uint8Array to Base64
-            let output = sodium.to_base64(
-              encBytes,
-              sodium.base64_variants.ORIGINAL
-            );
+    const { key, key_id } = encryptedValue.data;
+    const binkey = sodium.from_base64(key, sodium.base64_variants.ORIGINAL);
+    const binsec = sodium.from_string(secretValue);
 
-            // Print the output
-            return output;
-          })
-          .then((encryptedValue: string) => {
-            // Set secret it repository
-            this.app.request(
-              "PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}",
-              {
-                owner: config.repositoryOwner,
-                repo: config.repositoryName,
-                secret_name: secretName,
-                encrypted_value: encryptedValue,
-                key_id: key_id,
-              }
-            );
-          });
-      });
+    // Encrypt the secret using libsodium
+    const encBytes = sodium.crypto_box_seal(binsec, binkey);
+
+    // Convert the encrypted Uint8Array to Base64
+    const encryptedOutput = sodium.to_base64(
+      encBytes,
+      sodium.base64_variants.ORIGINAL
+    );
+
+    // set secret
+    return this.app.rest.actions.createOrUpdateRepoSecret({
+      owner: config.repositoryOwner,
+      repo: config.repositoryName,
+      secret_name: secretName,
+      encrypted_value: encryptedOutput,
+      key_id,
+    });
+  }
+
+  /**
+   * Removes a repository secret.
+   *
+   * @param config - The configuration object containing repository owner and name.
+   * @param secretName - The name of the secret to be removed.
+   * @returns A promise that resolves to the Octokit response.
+   */
+  public async removeRepoSecret(
+    config: Configuration,
+    secretName: string
+  ): Promise<OctokitResponse<any>> {
+    return await this.app.rest.actions.deleteRepoSecret({
+      owner: config.repositoryOwner,
+      repo: config.repositoryName,
+      secret_name: secretName,
+    });
   }
 }

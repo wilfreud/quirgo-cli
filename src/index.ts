@@ -24,7 +24,8 @@ let parsedKeyValues: ReturnType<typeof envParser> = {};
 
 /**
  * If no .env file provided,it means only one key-value pair is provided
- * Use console.table() to display listed secrets/variables (consider removing tabler)
+ * TODO: wrap methods in try/catch;
+ *
  */
 
 // Add options
@@ -43,7 +44,7 @@ program
   .option("-r, --repo <string>", "GitHub repository name")
   .option("-o, --owner <string>", "GitHub repository owner")
   .option("-e, --env <path>", "Path to a .env file to parse")
-  .option("-j, --json", "Path to a JSON file to parse")
+  .option("-j, --json <path>", "Path to a JSON file to parse")
   .action((opts) => {
     const { env, token, repo, owner, json } = opts;
     if (token) repoManager = new RepoManager(token);
@@ -65,9 +66,34 @@ program
 const varsCommand = new Command("vars");
 varsCommand.alias("v").description("Manage repository variables");
 
-varsCommand.command("list").description("List all variables");
+varsCommand
+  .command("list")
+  .description("List all variables")
+  .action(async () => {
+    try {
+      await fn();
+      const list = await repoManager?.listRepoVariables(config);
+      console.log("Total:", chalk.green(list?.data.total_count));
+      console.table(list?.data.variables);
+    } catch (err) {
+      console.error(chalk.red(err));
+    }
+  });
 varsCommand
   .command("create [name] [value]")
+  .action(async (name, value) => {
+    await fn();
+    Object.keys(parsedKeyValues).length === 0
+      ? await repoManager?.createRepoVariable(config, name, value)
+      : Object.keys(parsedKeyValues).map(async (key) => {
+          await repoManager?.createRepoVariable(
+            config,
+            key,
+            parsedKeyValues[key] as string
+          );
+        });
+    console.log(chalk.green("🍭 Variable(s) created successfully!"));
+  })
   .description("Create a new variable");
 varsCommand
   .command("update [name] [value]")
@@ -81,22 +107,42 @@ secretsCommand.description("Manage repository secrets").alias("s");
 secretsCommand
   .command("list")
   .description("List all secrets")
-  .action(() => {
-    console.log("Listing secrets....");
+  .action(async () => {
+    await fn();
+    const secs = await repoManager?.listRepoSecrets(config);
+    console.table(secs?.data.secrets);
+    console.log(chalk.bgGreen("Total:", secs?.data.total_count));
   });
 
 secretsCommand
   .command("set [name] [value]")
   .description("Set a new secret")
-  .action((name, value) => {
-    console.log(`Setting secret ${name}.... value: ${value}`);
+  .action(async (name, value) => {
+    await fn();
+    Object.keys(parsedKeyValues).length === 0
+      ? await repoManager?.setRepoSecret(config, name, value)
+      : Object.keys(parsedKeyValues).map(async (key) => {
+          await repoManager?.setRepoSecret(
+            config,
+            key,
+            parsedKeyValues[key] as string
+          );
+        });
+    console.log(chalk.green("🍭 Secret set successfully!"));
   });
 
 secretsCommand
   .command("remove [name]")
   .description("Remove an existing secret")
-  .action((name) => {
+  .action(async (name) => {
     console.log(`Removing secret ${name}....`);
+    await fn();
+    if (!name) {
+      name = await input({
+        message: "Secret name: ",
+      });
+    }
+    await repoManager?.removeRepoSecret(config, name);
   });
 
 // Add subcommands to program
@@ -108,11 +154,35 @@ program.on("option:verbose", () => {
   config.verbose = true;
 });
 
+program.on("option:token", (token) => {
+  if (!repoManager) repoManager = new RepoManager(token);
+});
+
+program.on("option:repo", (repo) => {
+  config.repositoryName = repo;
+});
+
+program.on("option:owner", (owner) => {
+  config.repositoryOwner = owner;
+});
+
+program.on("option:env", (env) => {
+  parsedKeyValues = envParser(env, { verbose: config.verbose || false });
+});
+
+program.on("option:json", (json) => {
+  parsedKeyValues = jsonParser(json, { verbose: config.verbose || false });
+});
+
 program.parse(process.argv);
 
 // Treatment here
-const options = program.opts();
+// const options = program.opts();
 
+/**
+ * Function to handle the CLI flow
+ * TODO: Refactor this function to be more modular
+ */
 async function fn() {
   // Ask for token if not provided
   if (!repoManager) {
@@ -147,20 +217,17 @@ async function fn() {
     });
     config.repositoryOwner = repoOwner;
   }
-
-  // Select action type if not provided
-  // if(options.)
 }
 
-fn()
-  .then(() => {
-    console.log(chalk.green("All done 🚀"));
-  })
-  .catch((err) => {
-    console.error(chalk.red(err));
-    process.exit(1);
-  })
-  .finally(() => {
-    console.table(options);
-    console.log("================= END ================");
-  });
+// fn()
+//   .then(() => {
+//     console.log(chalk.green("All done 🚀"));
+//   })
+//   .catch((err) => {
+//     console.error(chalk.red(err));
+//     process.exit(1);
+//   })
+//   .finally(() => {
+//     console.table(options);
+//     console.log("================= END ================");
+//   });
