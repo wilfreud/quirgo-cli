@@ -12,6 +12,7 @@ import {
   removeVariableFn,
   updateVariableFn,
 } from "./lib/actions/variables.actions";
+import { setSecretFn, removeSecretFn } from "./lib/actions/secrets.actions";
 
 console.log(BANNER);
 
@@ -97,7 +98,7 @@ varsCommand
   .action(async (name, value) => {
     try {
       await fn();
-      await updateVariableFn(config, repoManager, name, value);
+      await updateVariableFn(config, repoManager, parsedKeyValues, name, value);
     } catch (err) {
       console.error(chalk.red(err));
     }
@@ -109,7 +110,7 @@ varsCommand
   .action(async (name) => {
     try {
       await fn();
-      await removeVariableFn(config, repoManager, name);
+      await removeVariableFn(config, repoManager, parsedKeyValues, name);
     } catch (err) {
       console.error(chalk.red(err));
     }
@@ -118,7 +119,7 @@ varsCommand
 varsCommand.action(async () => {
   try {
     const actionOption = await select({
-      message: " Actions",
+      message: "Actions",
       choices: [
         { name: "List all variables", value: "list" },
         { name: "Create a new variable", value: "create" },
@@ -126,7 +127,7 @@ varsCommand.action(async () => {
         { name: "Remove an existing variable", value: "remove" },
       ],
       theme: {
-        prefix: "⚙",
+        prefix: "⚙ ",
       },
     });
 
@@ -146,11 +147,11 @@ varsCommand.action(async () => {
         break;
 
       case "update":
-        await updateVariableFn(config, repoManager);
+        await updateVariableFn(config, repoManager, parsedKeyValues);
         break;
 
       case "remove":
-        await removeVariableFn(config, repoManager);
+        await removeVariableFn(config, repoManager, parsedKeyValues);
         break;
 
       default:
@@ -179,32 +180,66 @@ secretsCommand
   .command("set [name] [value]")
   .description("Set a new secret")
   .action(async (name, value) => {
-    await fn();
-    Object.keys(parsedKeyValues).length === 0
-      ? await repoManager?.setRepoSecret(config, name, value)
-      : Object.keys(parsedKeyValues).map(async (key) => {
-          await repoManager?.setRepoSecret(
-            config,
-            key,
-            parsedKeyValues[key] as string
-          );
-        });
-    console.log(chalk.green("🍭 Secret set successfully!"));
+    try {
+      await fn();
+      await setSecretFn(config, repoManager, parsedKeyValues, name, value);
+    } catch (err) {
+      console.error(chalk.red(err));
+    }
   });
 
 secretsCommand
   .command("remove [name]")
   .description("Remove an existing secret")
   .action(async (name) => {
-    console.log(`Removing secret ${name}....`);
-    await fn();
-    if (!name) {
-      name = await input({
-        message: "Secret name: ",
-      });
+    try {
+      await fn();
+      await removeSecretFn(config, repoManager, parsedKeyValues, name);
+    } catch (err) {
+      console.error(chalk.red(err));
     }
-    await repoManager?.removeRepoSecret(config, name);
   });
+
+secretsCommand.action(async () => {
+  try {
+    const actionOption = await select({
+      message: "Actions",
+      choices: [
+        { name: "List all secrets", value: "list" },
+        { name: "Set a  secret", value: "set" },
+        { name: "Remove an existing secret", value: "remove" },
+      ],
+      theme: {
+        prefix: "⚙ ",
+      },
+    });
+
+    await fn();
+
+    switch (actionOption) {
+      case "list":
+        const variables = await repoManager?.listRepoVariables(config);
+        console.table(variables?.data.variables);
+        console.log(
+          chalk.bgGreen("Total: " + variables?.data.total_count + " ")
+        );
+        break;
+
+      case "set":
+        await setSecretFn(config, repoManager, parsedKeyValues);
+        break;
+
+      case "remove":
+        await removeSecretFn(config, repoManager, parsedKeyValues);
+        break;
+
+      default:
+        break;
+    }
+  } catch (err) {
+    console.error(chalk.red(err));
+  }
+});
 
 // Add subcommands to program
 program.addCommand(varsCommand).addCommand(secretsCommand);
@@ -239,7 +274,6 @@ program.parse(process.argv);
 
 /**
  * Function to handle the CLI flow
- * TODO: Refactor this function to be more modular
  */
 async function fn() {
   // Ask for token if not provided
