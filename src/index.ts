@@ -57,8 +57,7 @@ program
 
     if (env)
       parsedKeyValues = envParser(env, { verbose: config.verbose || false });
-
-    if (json)
+    else if (json)
       parsedKeyValues = jsonParser(opts.json, {
         verbose: config.verbose || false,
       });

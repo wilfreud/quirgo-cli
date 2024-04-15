@@ -25,21 +25,39 @@ npm install -g quirgo-cli
 To start using Quirgo, run:
 
 ```
-quirgo-cli
+quirgo
 ```
 
 ### Commands
 
 - vars
+  - list
+  - create
+  - update
+  - remove
 - secrets
+  - list
+  - set
+  - remove
 
-### Env variables parsing
+### Example
 
-Are supported the following file formats
+```ps1
+quirgo secrets set --token=xxxxxxxxx --repo=repository --owner=owner --env=/path/to/env/file
+```
 
-- JSON
-<!-- Here add the  syntax that needs to ne respected -->
-- .env
+### File parsing
+
+It is possible to load variables/secrets from .env and .json files, as long as the key-value format is respected.
+
+The .json file would need to resect this format:
+
+```json
+{
+  "KEY_1": "VALUE_1",
+  "KEY_2": "VALUE_2"
+}
+```
 
 ## License
 
