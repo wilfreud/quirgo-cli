@@ -2,10 +2,6 @@
 - Consider writing tests (unit tests and whatnot)
 - Add warning about gitbub's rate limit
 - Changeset to major version when basic cli is active
-- Add logger
-- Natively parse .env (steal snippet from dotenv package)
-- Give credits (copy/pasted code from prefixes.ts)
-- replace console.error for all --verbose with color (chalk)
 - Octokit
   - Check if user is authenticated
   - use these methds: .this.app.rest.actions.createOrUpdateRepoSecret({})
@@ -13,6 +9,6 @@
 - Handle verbose properly
 
 -- CLI --
-Main Packages: [chalk, chokidar, inquirer, node-emoji, ora, shelljs, figlet]
+Main Packages: [chokidar, ora/cli-spinners, shelljs, figlet]
 Git: [husky, commtlint]
 Other: [gulp, jest]

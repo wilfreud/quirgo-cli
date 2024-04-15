@@ -7,6 +7,11 @@ import { envParser, jsonParser } from "./lib/parsers";
 import { BANNER } from "./lib/ui/banner";
 import chalk from "chalk";
 import { password, select, input } from "@inquirer/prompts";
+import {
+  createVariableFn,
+  removeVariableFn,
+  updateVariableFn,
+} from "./lib/actions/variables.actions";
 
 console.log(BANNER);
 
@@ -20,13 +25,9 @@ const config: RepositoryManagerConfiguration = {
   repositoryOwner: "",
   verbose: false,
 };
-let parsedKeyValues: ReturnType<typeof envParser> = {};
 
-/**
- * If no .env file provided,it means only one key-value pair is provided
- * TODO: wrap methods in try/catch;
- *
- */
+// prepare parsing
+let parsedKeyValues: ReturnType<typeof envParser> = {};
 
 // Add options
 program
@@ -82,23 +83,83 @@ varsCommand
 varsCommand
   .command("create [name] [value]")
   .action(async (name, value) => {
-    await fn();
-    Object.keys(parsedKeyValues).length === 0
-      ? await repoManager?.createRepoVariable(config, name, value)
-      : Object.keys(parsedKeyValues).map(async (key) => {
-          await repoManager?.createRepoVariable(
-            config,
-            key,
-            parsedKeyValues[key] as string
-          );
-        });
-    console.log(chalk.green("🍭 Variable(s) created successfully!"));
+    try {
+      await fn();
+      await createVariableFn(config, repoManager, parsedKeyValues, name, value);
+    } catch (err) {
+      console.error(chalk.red(err));
+    }
   })
   .description("Create a new variable");
+
 varsCommand
   .command("update [name] [value]")
+  .action(async (name, value) => {
+    try {
+      await fn();
+      await updateVariableFn(config, repoManager, name, value);
+    } catch (err) {
+      console.error(chalk.red(err));
+    }
+  })
   .description("Update an existing variable");
-varsCommand.command("remove [name]").description("Remove an existing variable");
+varsCommand
+  .command("remove [name]")
+  .description("Remove an existing variable")
+  .action(async (name) => {
+    try {
+      await fn();
+      await removeVariableFn(config, repoManager, name);
+    } catch (err) {
+      console.error(chalk.red(err));
+    }
+  });
+
+varsCommand.action(async () => {
+  try {
+    const actionOption = await select({
+      message: " Actions",
+      choices: [
+        { name: "List all variables", value: "list" },
+        { name: "Create a new variable", value: "create" },
+        { name: "Update an existing variable", value: "update" },
+        { name: "Remove an existing variable", value: "remove" },
+      ],
+      theme: {
+        prefix: "⚙",
+      },
+    });
+
+    await fn();
+
+    switch (actionOption) {
+      case "list":
+        const variables = await repoManager?.listRepoVariables(config);
+        console.table(variables?.data.variables);
+        console.log(
+          chalk.bgGreen("Total: " + variables?.data.total_count + " ")
+        );
+        break;
+
+      case "create":
+        await createVariableFn(config, repoManager, parsedKeyValues);
+        break;
+
+      case "update":
+        await updateVariableFn(config, repoManager);
+        break;
+
+      case "remove":
+        await removeVariableFn(config, repoManager);
+        break;
+
+      default:
+        break;
+    }
+  } catch (err) {
+    console.error(chalk.red(err));
+  }
+});
 
 // Add secrets commands
 const secretsCommand = new Command("secrets");
@@ -176,9 +237,6 @@ program.on("option:json", (json) => {
 
 program.parse(process.argv);
 
-// Treatment here
-// const options = program.opts();
-
 /**
  * Function to handle the CLI flow
  * TODO: Refactor this function to be more modular
@@ -219,15 +277,7 @@ async function fn() {
   }
 }
 
-// fn()
-//   .then(() => {
-//     console.log(chalk.green("All done 🚀"));
-//   })
-//   .catch((err) => {
-//     console.error(chalk.red(err));
-//     process.exit(1);
-//   })
-//   .finally(() => {
-//     console.table(options);
-//     console.log("================= END ================");
-//   });
+// If no command is provided, show help
+if (!process.argv.slice(2).length) {
+  program.outputHelp();
+}
