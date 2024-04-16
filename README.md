@@ -5,19 +5,19 @@ Quirgo is a tool built to easily configure repositories' secrets and variables.
 ## Installation
 
 ```
-yarn add -g quirgo-cli
+yarn add -g quirgo
 ```
 
 or
 
 ```
-pnpm add -g quirgo-cli
+pnpm add -g quirgo
 ```
 
 or
 
 ```
-npm install -g quirgo-cli
+npm install -g quirgo
 ```
 
 ## Usage
@@ -42,14 +42,13 @@ quirgo
 
 ### Example
 
-```ps1
+```sh
 quirgo secrets set --token=xxxxxxxxx --repo=repository --owner=owner --env=/path/to/env/file
 ```
 
 ### File parsing
 
 It is possible to load variables/secrets from .env and .json files, as long as the key-value format is respected.
-
 The .json file would need to resect this format:
 
 ```json

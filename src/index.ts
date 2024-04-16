@@ -1,19 +1,18 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import { RepoManager } from "./lib/repository-manager";
+import { RepoManager } from "./lib/repository-manager.js";
 import { Configuration as RepositoryManagerConfiguration } from "@/types/repository-manager";
-import { envParser, jsonParser } from "./lib/parsers";
-import { BANNER } from "./lib/ui/banner";
+import { envParser, jsonParser } from "./lib/parsers.js";
+import { BANNER } from "./lib/ui/banner.js";
 import chalk from "chalk";
 import { password, select, input } from "@inquirer/prompts";
 import {
   createVariableFn,
   removeVariableFn,
   updateVariableFn,
-} from "./lib/actions/variables.actions";
-import { setSecretFn, removeSecretFn } from "./lib/actions/secrets.actions";
-
+} from "./lib/actions/variables.actions.js";
+import { setSecretFn, removeSecretFn } from "./lib/actions/secrets.actions.js";
 console.log(BANNER);
 
 // Declare the program
@@ -34,11 +33,6 @@ let parsedKeyValues: ReturnType<typeof envParser> = {};
 program
   .name("quirgo")
   .option("--verbose", "Verbose output", false)
-  .version(
-    require("../package.json").version,
-    "-v, --version",
-    "Output the current version"
-  )
   .description(
     "A simple CLI to manage your GitHub repositories secrets and variables."
   )
