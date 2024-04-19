@@ -13,6 +13,8 @@ import {
   updateVariableFn,
 } from "./lib/actions/variables.actions.js";
 import { setSecretFn, removeSecretFn } from "./lib/actions/secrets.actions.js";
+import { spinner } from "./lib/spinner.js";
+
 console.log(BANNER);
 
 // Declare the program
@@ -163,10 +165,14 @@ secretsCommand
   .command("list")
   .description("List all secrets")
   .action(async () => {
-    await fn();
-    const secs = await repoManager?.listRepoSecrets(config);
-    console.table(secs?.data.secrets);
-    console.log(chalk.bgGreen("Total:", secs?.data.total_count));
+    try {
+      await fn();
+      const secs = await repoManager?.listRepoSecrets(config);
+      console.table(secs?.data.secrets);
+      console.log(chalk.bgGreen("Total:", secs?.data.total_count));
+    } catch (err) {
+      console.error(chalk.red(err));
+    }
   });
 
 secretsCommand
@@ -211,11 +217,9 @@ secretsCommand.action(async () => {
 
     switch (actionOption) {
       case "list":
-        const variables = await repoManager?.listRepoVariables(config);
-        console.table(variables?.data.variables);
-        console.log(
-          chalk.bgGreen("Total: " + variables?.data.total_count + " ")
-        );
+        const secrets = await repoManager?.listRepoSecrets(config);
+        console.table(secrets?.data.secrets);
+        console.log(chalk.bgGreen("Total: " + secrets?.data.total_count + " "));
         break;
 
       case "set":
@@ -232,6 +236,10 @@ secretsCommand.action(async () => {
   } catch (err) {
     console.error(chalk.red(err));
   }
+});
+secretsCommand.hook("postAction", () => {
+  console.log("Command executed successfully 🚀");
+  spinner.stop().clear();
 });
 
 // Add subcommands to program

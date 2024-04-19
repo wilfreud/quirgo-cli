@@ -25,6 +25,7 @@ export async function setSecretFn(
     await repoManager?.setRepoSecret(config, name, value);
   } else {
     Object.keys(parsedKeyValues).map(async (key) => {
+      // here pause the spinner, set the secret, then start the spinner again
       await repoManager?.setRepoSecret(
         config,
         key,
