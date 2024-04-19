@@ -2,4 +2,4 @@
 "quirgo": patch
 ---
 
-added spinnerl loader
+stable release

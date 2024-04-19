@@ -1,6 +1,7 @@
 {
   "name": "quirgo",
   "version": "0.0.0",
+  "private": false,
   "description": "A CLI tool to automate repositories secrets and variables setting via the Gihub API",
   "type": "module",
   "main": "index.js",
@@ -12,6 +13,8 @@
   "scripts": {
     "init-cli": "pnpm --global unlink quirgo && pnpm link --global",
     "build": "tsup src/**/*.ts --format esm,cjs --dts",
+    "ci": "pnpm run build && pnpm run lint",
+    "release": "pnpm run build && pnpm run lint && changeset publish",
     "dev": "tsc -w",
     "test": "node --env-file=config.env test/test.js",
     "test:prod": "node test/test.js",
