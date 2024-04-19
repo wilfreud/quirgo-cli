@@ -1,5 +1,11 @@
 # quirgo
 
+## 0.0.1
+
+### Patch Changes
+
+- ef59147: added spinnerl loader
+
 ## 0.0.2
 
 ### Patch Changes
