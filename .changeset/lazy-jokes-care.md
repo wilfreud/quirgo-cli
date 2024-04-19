@@ -1,5 +1,0 @@
----
-"quirgo": patch
----
-
-stable release
