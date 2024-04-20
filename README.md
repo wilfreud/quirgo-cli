@@ -42,7 +42,7 @@ quirgo
 
 ### Example
 
-```sh
+```bash
 quirgo secrets set --token=xxxxxxxxx --repo=repository --owner=owner --env=/path/to/env/file
 ```
 
