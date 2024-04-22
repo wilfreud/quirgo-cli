@@ -17,6 +17,11 @@ import { spinner } from "./lib/spinner.js";
 
 console.log(BANNER);
 
+/**
+ * TODO: handle the case when --env/--json is provided
+ * TODO: create todolist in README.md
+ */
+
 // Declare the program
 const program = new Command();
 
