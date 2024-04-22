@@ -9,6 +9,7 @@ import { spinner } from "./spinner.js";
  * Faster & shorter
  * Tag commit as "refactor"
  * TODO: check returnTypes
+ * TODO: different request methods for variables
  */
 
 export class RepoManager {
@@ -16,6 +17,11 @@ export class RepoManager {
 
   constructor(githubAccessToken: string) {
     this.app = new Octokit({ auth: githubAccessToken });
+  }
+
+  public async getUserLogin(): Promise<string | null> {
+    const user = await this.app.rest.users.getAuthenticated();
+    return user.data.login;
   }
 
   /**
@@ -125,13 +131,13 @@ export class RepoManager {
    * @param {Configuration} config The configuration object containing repository details.
    * @param {string} secretName The name of the variable to create.
    * @param {string} secretValue The value of the variable to create.
-   * @returns {Promise<void | OctokitResponse<any>>} A Promise containing the Octokit response.
+   * @returns {Promise<OctokitResponse<any>>} A Promise containing the Octokit response.
    */
   public async setRepoSecret(
     config: Configuration,
     secretName: string,
     secretValue: string
-  ): Promise<void | OctokitResponse<any>> {
+  ): Promise<OctokitResponse<any>> {
     spinner.start(`Setting secret <${secretName}>...\n`);
     // get repo public key
     const encryptedValue = await this.app.rest.actions.getRepoPublicKey({

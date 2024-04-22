@@ -12,7 +12,7 @@
   },
   "scripts": {
     "init-cli": "pnpm --global unlink quirgo && pnpm link --global",
-    "build": "tsup src/**/*.ts --format esm,cjs --dts",
+    "build": "tsup src/**/*.ts --format esm --dts",
     "ci": "pnpm run build && pnpm run lint",
     "release": "pnpm run build && pnpm run lint && changeset publish",
     "dev": "tsc -w",

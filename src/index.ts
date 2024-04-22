@@ -17,6 +17,11 @@ import { spinner } from "./lib/spinner.js";
 
 console.log(BANNER);
 
+/**
+ * TODO: handle the case when --env/--json is provided
+ * TODO: create todolist in README.md
+ */
+
 // Declare the program
 const program = new Command();
 
@@ -251,8 +256,27 @@ program.on("option:verbose", () => {
   config.verbose = true;
 });
 
-program.on("option:token", (token) => {
-  if (!repoManager) repoManager = new RepoManager(token);
+program.on("option:token", async (token) => {
+  try {
+    if (!repoManager) repoManager = new RepoManager(token);
+
+    // DOC: note that this will be default if no --owner option is detected
+    config.repositoryOwner = (await repoManager.getUserLogin()) || "";
+
+    if (config.verbose) {
+      console.log(
+        chalk.cyan("-> Using"),
+        chalk.bgBlueBright(config.repositoryOwner),
+        chalk.cyan("as default repository owner")
+      );
+    }
+  } catch (err: any) {
+    console.error(
+      chalk.red("Impossible to authenticate using the GitHub Access Token")
+    );
+    console.error(chalk.red(err));
+    process.exit(-1);
+  }
 });
 
 program.on("option:repo", (repo) => {
@@ -269,6 +293,11 @@ program.on("option:env", (env) => {
 
 program.on("option:json", (json) => {
   parsedKeyValues = jsonParser(json, { verbose: config.verbose || false });
+});
+
+program.action(() => {
+  program.outputHelp();
+  process.exit(0);
 });
 
 program.parse(process.argv);
@@ -312,7 +341,7 @@ async function fn() {
   }
 }
 
-// If no command is provided, show help
-if (!process.argv.slice(2).length) {
-  program.outputHelp();
-}
+// // If no command is provided, show help
+// if (!process.argv.slice(2).length) {
+//   program.outputHelp();
+// }
