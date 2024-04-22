@@ -14,6 +14,7 @@ import {
 } from "./lib/actions/variables.actions.js";
 import { setSecretFn, removeSecretFn } from "./lib/actions/secrets.actions.js";
 import { spinner } from "./lib/spinner.js";
+import { KeyValueType } from "./types/parsers.js";
 
 console.log(BANNER);
 
@@ -49,7 +50,7 @@ const config: RepositoryManagerConfiguration = {
 };
 
 // prepare parsing
-let parsedKeyValues: ReturnType<typeof envParser> = {};
+let parsedKeyValues: KeyValueType = {};
 
 // Add options
 program
@@ -78,13 +79,6 @@ program
     if (repo) config.repositoryName = repo;
 
     if (owner) config.repositoryOwner = owner;
-
-    // if (env)
-    //   parsedKeyValues = envParser(env, { verbose: config.verbose || false });
-    // else if (json)
-    //   parsedKeyValues = jsonParser(opts.json, {
-    //     verbose: config.verbose || false,
-    //   });
   });
 
 // Add commands
@@ -141,6 +135,7 @@ varsCommand
 
 varsCommand.action(async () => {
   try {
+    await fn();
     const actionOption = await select({
       message: "Actions",
       choices: [
@@ -229,6 +224,7 @@ secretsCommand
 
 secretsCommand.action(async () => {
   try {
+    await fn();
     const actionOption = await select({
       message: "Actions",
       choices: [
@@ -240,8 +236,6 @@ secretsCommand.action(async () => {
         prefix: "⚙ ",
       },
     });
-
-    await fn();
 
     switch (actionOption) {
       case "list":
@@ -265,7 +259,7 @@ secretsCommand.action(async () => {
     console.error(chalk.red(err));
   }
 });
-secretsCommand.hook("postAction", () => {
+program.hook("postAction", () => {
   console.log("Command executed successfully 🚀");
   spinner.stop().clear();
 });
@@ -280,25 +274,7 @@ program.on("option:verbose", () => {
 });
 
 program.on("option:token", async (token) => {
-  try {
-    if (!repoManager) repoManager = new RepoManager(token);
-
-    config.repositoryOwner = (await repoManager.getUserLogin()) || "";
-
-    if (config.verbose) {
-      console.log(
-        chalk.cyan("-> Using"),
-        chalk.bgBlueBright(config.repositoryOwner),
-        chalk.cyan("as default repository owner")
-      );
-    }
-  } catch (err: any) {
-    console.error(
-      chalk.red("Impossible to authenticate using the GitHub Access Token")
-    );
-    console.error(chalk.red(err));
-    process.exit(-1);
-  }
+  if (!repoManager) repoManager = new RepoManager(token);
 });
 
 program.on("option:repo", (repo) => {
@@ -311,12 +287,22 @@ program.on("option:owner", (owner) => {
 
 program.on("option:env", (env) => {
   if (!program.getOptionValue("json"))
-    parsedKeyValues = envParser(env, { verbose: config.verbose || false });
+    try {
+      parsedKeyValues = envParser(env, { verbose: config.verbose || false });
+    } catch (err) {
+      console.error(chalk.red(err));
+      process.exit(-1);
+    }
 });
 
 program.on("option:json", (json) => {
   if (!program.getOptionValue("env"))
-    parsedKeyValues = jsonParser(json, { verbose: config.verbose || false });
+    try {
+      parsedKeyValues = jsonParser(json, { verbose: config.verbose || false });
+    } catch (err) {
+      console.error(chalk.red(err));
+      process.exit(-1);
+    }
 });
 
 program.action(() => {
@@ -342,6 +328,25 @@ async function fn() {
     repoManager = new RepoManager(ghToken);
   }
 
+  // check auth and set default owner
+
+  try {
+    config.repositoryOwner = (await repoManager.getUserLogin()) || "";
+
+    if (config.verbose) {
+      console.log(
+        chalk.cyan("-> Using"),
+        chalk.bgBlueBright(config.repositoryOwner),
+        chalk.cyan("as default repository owner")
+      );
+    }
+  } catch (err: any) {
+    console.error(
+      chalk.red("Impossible to authenticate using the GitHub Access Token")
+    );
+    console.error(chalk.red(err));
+    process.exit(-1);
+  }
   // Ask for repository name if not provided
   if (!config.repositoryName) {
     const repoName = await input({
