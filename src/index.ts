@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { Command } from "commander";
+import { Command, Option } from "commander";
 import { RepoManager } from "./lib/repository-manager.js";
 import { Configuration as RepositoryManagerConfiguration } from "@/types/repository-manager";
 import { envParser, jsonParser } from "./lib/parsers.js";
@@ -20,10 +20,25 @@ console.log(BANNER);
 /**
  * TODO: handle the case when --env/--json is provided
  * TODO: create todolist in README.md
+ * TODO: doc -> note feature about default owner if -o not specified
+ *
  */
 
 // Declare the program
 const program = new Command();
+
+function errorColor(str: string) {
+  // Add ANSI escape codes to display text in red.
+  return `\x1b[31m${str}\x1b[0m`;
+}
+
+program.configureOutput({
+  // Visibly override write routines as example!
+  // writeOut: (str) => process.stdout.write(`[OUT] ${str}`),
+  // writeErr: (str) => process.stdout.write(str),
+  // Highlight errors in color.
+  outputError: (str, write) => write(chalk.red(str)),
+});
 
 // Init repo manager
 let repoManager: RepoManager | null = null;
@@ -46,8 +61,16 @@ program
   .option("-t, --token <string>", "GitHub access token")
   .option("-r, --repo <string>", "GitHub repository name")
   .option("-o, --owner <string>", "GitHub repository owner")
-  .option("-e, --env <path>", "Path to a .env file to parse")
-  .option("-j, --json <path>", "Path to a JSON file to parse")
+  .addOption(
+    new Option("-e, --env <path>", "Path to a .env file to parse").conflicts(
+      "json"
+    )
+  )
+  .addOption(
+    new Option("-j, --json <path>", "Path to a JSON file to parse").conflicts(
+      "env"
+    )
+  )
   .action((opts) => {
     const { env, token, repo, owner, json } = opts;
     if (token) repoManager = new RepoManager(token);
@@ -56,12 +79,12 @@ program
 
     if (owner) config.repositoryOwner = owner;
 
-    if (env)
-      parsedKeyValues = envParser(env, { verbose: config.verbose || false });
-    else if (json)
-      parsedKeyValues = jsonParser(opts.json, {
-        verbose: config.verbose || false,
-      });
+    // if (env)
+    //   parsedKeyValues = envParser(env, { verbose: config.verbose || false });
+    // else if (json)
+    //   parsedKeyValues = jsonParser(opts.json, {
+    //     verbose: config.verbose || false,
+    //   });
   });
 
 // Add commands
@@ -260,7 +283,6 @@ program.on("option:token", async (token) => {
   try {
     if (!repoManager) repoManager = new RepoManager(token);
 
-    // DOC: note that this will be default if no --owner option is detected
     config.repositoryOwner = (await repoManager.getUserLogin()) || "";
 
     if (config.verbose) {
@@ -288,11 +310,13 @@ program.on("option:owner", (owner) => {
 });
 
 program.on("option:env", (env) => {
-  parsedKeyValues = envParser(env, { verbose: config.verbose || false });
+  if (!program.getOptionValue("json"))
+    parsedKeyValues = envParser(env, { verbose: config.verbose || false });
 });
 
 program.on("option:json", (json) => {
-  parsedKeyValues = jsonParser(json, { verbose: config.verbose || false });
+  if (!program.getOptionValue("env"))
+    parsedKeyValues = jsonParser(json, { verbose: config.verbose || false });
 });
 
 program.action(() => {
