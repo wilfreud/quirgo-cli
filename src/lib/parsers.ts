@@ -1,5 +1,5 @@
 import { DotenvParseOutput, parse } from "dotenv";
-import { JSONParserReturnType, ParserConfig } from "@/types/parsers";
+import { KeyValueType, ParserConfig } from "@/types/parsers";
 import { readFileSync } from "fs";
 
 /**
@@ -18,10 +18,10 @@ export function envParser(
     const filecontent = readFileSync(filePath);
     result = parse(filecontent);
   } catch (error) {
-    console.error(
-      "Error reading env file. Please make sure file exists and is valid."
-    );
     if (config?.verbose) console.error(error);
+    throw new Error(
+      "Error reading JSON file. Please ensure the file exists and is valid."
+    );
   }
   return result;
 }
@@ -31,16 +31,16 @@ export function envParser(
  * @param {string} filepath - The path to the JSON file to parse.
  * @param {ParserConfig} [config] - Configuration options for parsing.
  * @param {boolean} [config.verbose=false] - If true, verbose error messages will be logged.
- * @returns {JSONParserReturnType} An object containing the parsed data from the JSON file.
+ * @returns {KeyValueType} An object containing the parsed data from the JSON file.
  */
 export function jsonParser(
   filepath: string,
   config?: ParserConfig
-): JSONParserReturnType {
-  let obj: JSONParserReturnType = {};
+): KeyValueType {
+  let obj: KeyValueType = {};
   try {
     const file = readFileSync(filepath, "utf-8");
-    const fileContent: JSONParserReturnType = JSON.parse(file);
+    const fileContent: KeyValueType = JSON.parse(file);
     const doesTypeMatch = Object.values(fileContent).every(
       (value: any) => typeof value === "string"
     );
@@ -51,10 +51,10 @@ export function jsonParser(
 
     obj = fileContent;
   } catch (err) {
-    console.error(
-      "Error reading json file. Please make sure file exists and has valide shape."
-    );
     if (config?.verbose) console.error(err);
+    throw new Error(
+      "Error reading JSON file. Please ensure the file exists and is valid."
+    );
   }
 
   return obj;

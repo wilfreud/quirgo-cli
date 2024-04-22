@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { Command } from "commander";
+import { Command, Option } from "commander";
 import { RepoManager } from "./lib/repository-manager.js";
 import { Configuration as RepositoryManagerConfiguration } from "@/types/repository-manager";
 import { envParser, jsonParser } from "./lib/parsers.js";
@@ -14,16 +14,32 @@ import {
 } from "./lib/actions/variables.actions.js";
 import { setSecretFn, removeSecretFn } from "./lib/actions/secrets.actions.js";
 import { spinner } from "./lib/spinner.js";
+import { KeyValueType } from "./types/parsers.js";
 
 console.log(BANNER);
 
 /**
  * TODO: handle the case when --env/--json is provided
  * TODO: create todolist in README.md
+ * TODO: doc -> note feature about default owner if -o not specified
+ *
  */
 
 // Declare the program
 const program = new Command();
+
+function errorColor(str: string) {
+  // Add ANSI escape codes to display text in red.
+  return `\x1b[31m${str}\x1b[0m`;
+}
+
+program.configureOutput({
+  // Visibly override write routines as example!
+  // writeOut: (str) => process.stdout.write(`[OUT] ${str}`),
+  // writeErr: (str) => process.stdout.write(str),
+  // Highlight errors in color.
+  outputError: (str, write) => write(chalk.red(str)),
+});
 
 // Init repo manager
 let repoManager: RepoManager | null = null;
@@ -34,7 +50,7 @@ const config: RepositoryManagerConfiguration = {
 };
 
 // prepare parsing
-let parsedKeyValues: ReturnType<typeof envParser> = {};
+let parsedKeyValues: KeyValueType = {};
 
 // Add options
 program
@@ -46,8 +62,16 @@ program
   .option("-t, --token <string>", "GitHub access token")
   .option("-r, --repo <string>", "GitHub repository name")
   .option("-o, --owner <string>", "GitHub repository owner")
-  .option("-e, --env <path>", "Path to a .env file to parse")
-  .option("-j, --json <path>", "Path to a JSON file to parse")
+  .addOption(
+    new Option("-e, --env <path>", "Path to a .env file to parse").conflicts(
+      "json"
+    )
+  )
+  .addOption(
+    new Option("-j, --json <path>", "Path to a JSON file to parse").conflicts(
+      "env"
+    )
+  )
   .action((opts) => {
     const { env, token, repo, owner, json } = opts;
     if (token) repoManager = new RepoManager(token);
@@ -55,13 +79,6 @@ program
     if (repo) config.repositoryName = repo;
 
     if (owner) config.repositoryOwner = owner;
-
-    if (env)
-      parsedKeyValues = envParser(env, { verbose: config.verbose || false });
-    else if (json)
-      parsedKeyValues = jsonParser(opts.json, {
-        verbose: config.verbose || false,
-      });
   });
 
 // Add commands
@@ -118,6 +135,7 @@ varsCommand
 
 varsCommand.action(async () => {
   try {
+    await fn();
     const actionOption = await select({
       message: "Actions",
       choices: [
@@ -206,6 +224,7 @@ secretsCommand
 
 secretsCommand.action(async () => {
   try {
+    await fn();
     const actionOption = await select({
       message: "Actions",
       choices: [
@@ -217,8 +236,6 @@ secretsCommand.action(async () => {
         prefix: "⚙ ",
       },
     });
-
-    await fn();
 
     switch (actionOption) {
       case "list":
@@ -242,7 +259,7 @@ secretsCommand.action(async () => {
     console.error(chalk.red(err));
   }
 });
-secretsCommand.hook("postAction", () => {
+program.hook("postAction", () => {
   console.log("Command executed successfully 🚀");
   spinner.stop().clear();
 });
@@ -257,26 +274,7 @@ program.on("option:verbose", () => {
 });
 
 program.on("option:token", async (token) => {
-  try {
-    if (!repoManager) repoManager = new RepoManager(token);
-
-    // DOC: note that this will be default if no --owner option is detected
-    config.repositoryOwner = (await repoManager.getUserLogin()) || "";
-
-    if (config.verbose) {
-      console.log(
-        chalk.cyan("-> Using"),
-        chalk.bgBlueBright(config.repositoryOwner),
-        chalk.cyan("as default repository owner")
-      );
-    }
-  } catch (err: any) {
-    console.error(
-      chalk.red("Impossible to authenticate using the GitHub Access Token")
-    );
-    console.error(chalk.red(err));
-    process.exit(-1);
-  }
+  if (!repoManager) repoManager = new RepoManager(token);
 });
 
 program.on("option:repo", (repo) => {
@@ -288,11 +286,23 @@ program.on("option:owner", (owner) => {
 });
 
 program.on("option:env", (env) => {
-  parsedKeyValues = envParser(env, { verbose: config.verbose || false });
+  if (!program.getOptionValue("json"))
+    try {
+      parsedKeyValues = envParser(env, { verbose: config.verbose || false });
+    } catch (err) {
+      console.error(chalk.red(err));
+      process.exit(-1);
+    }
 });
 
 program.on("option:json", (json) => {
-  parsedKeyValues = jsonParser(json, { verbose: config.verbose || false });
+  if (!program.getOptionValue("env"))
+    try {
+      parsedKeyValues = jsonParser(json, { verbose: config.verbose || false });
+    } catch (err) {
+      console.error(chalk.red(err));
+      process.exit(-1);
+    }
 });
 
 program.action(() => {
@@ -318,6 +328,25 @@ async function fn() {
     repoManager = new RepoManager(ghToken);
   }
 
+  // check auth and set default owner
+
+  try {
+    config.repositoryOwner = (await repoManager.getUserLogin()) || "";
+
+    if (config.verbose) {
+      console.log(
+        chalk.cyan("-> Using"),
+        chalk.bgBlueBright(config.repositoryOwner),
+        chalk.cyan("as default repository owner")
+      );
+    }
+  } catch (err: any) {
+    console.error(
+      chalk.red("Impossible to authenticate using the GitHub Access Token")
+    );
+    console.error(chalk.red(err));
+    process.exit(-1);
+  }
   // Ask for repository name if not provided
   if (!config.repositoryName) {
     const repoName = await input({
