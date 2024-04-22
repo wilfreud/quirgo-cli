@@ -19,6 +19,11 @@ export class RepoManager {
     this.app = new Octokit({ auth: githubAccessToken });
   }
 
+  public async getUserLogin(): Promise<string | null> {
+    const user = await this.app.rest.users.getAuthenticated();
+    return user.data.login;
+  }
+
   /**
    * List variables in the repository for GitHub Actions.
    * @param {Configuration} config The configuration object containing repository details.
