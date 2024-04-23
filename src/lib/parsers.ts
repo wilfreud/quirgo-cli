@@ -18,9 +18,9 @@ export function envParser(
     const filecontent = readFileSync(filePath);
     result = parse(filecontent);
   } catch (error) {
-    if (config?.verbose) console.error(error);
+    if (true || config?.verbose) console.error(error);
     throw new Error(
-      "Error reading JSON file. Please ensure the file exists and is valid."
+      "Error reading env file. Please ensure the file exists and is valid."
     );
   }
   return result;

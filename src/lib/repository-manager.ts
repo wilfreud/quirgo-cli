@@ -118,6 +118,7 @@ export class RepoManager {
   public async listRepoSecrets(
     config: Configuration
   ): Promise<ReturnType<typeof this.app.rest.actions.listRepoSecrets>> {
+    console.log("Config:", config);
     spinner.start("Fetching repository secrets...\n");
     return await this.app.rest.actions.listRepoSecrets({
       owner: config.repositoryOwner,

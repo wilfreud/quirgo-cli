@@ -71,15 +71,7 @@ program
     new Option("-j, --json <path>", "Path to a JSON file to parse").conflicts(
       "env"
     )
-  )
-  .action((opts) => {
-    const { env, token, repo, owner, json } = opts;
-    if (token) repoManager = new RepoManager(token);
-
-    if (repo) config.repositoryName = repo;
-
-    if (owner) config.repositoryOwner = owner;
-  });
+  );
 
 // Add commands
 const varsCommand = new Command("vars");
@@ -153,11 +145,20 @@ varsCommand.action(async () => {
 
     switch (actionOption) {
       case "list":
-        const variables = await repoManager?.listRepoVariables(config);
-        console.table(variables?.data.variables);
-        console.log(
-          chalk.bgGreen("Total: " + variables?.data.total_count + " ")
-        );
+        try {
+          const variables = await repoManager?.listRepoVariables(config);
+          console.table(variables?.data.variables);
+          console.log(
+            chalk.bgGreen("Total: " + variables?.data.total_count + " ")
+          );
+        } catch (err) {
+          if (config.verbose) console.error(err);
+          console.error(
+            chalk.red(
+              "An error occured; please check the repository infos (owner & name)"
+            )
+          );
+        }
         break;
 
       case "create":
@@ -194,7 +195,12 @@ secretsCommand
       console.table(secs?.data.secrets);
       console.log(chalk.bgGreen("Total:", secs?.data.total_count));
     } catch (err) {
-      console.error(chalk.red(err));
+      if (config.verbose) console.error(err);
+      console.error(
+        chalk.red(
+          "An error occured; please check the repository infos (owner & name)"
+        )
+      );
     }
   });
 
@@ -286,23 +292,22 @@ program.on("option:owner", (owner) => {
 });
 
 program.on("option:env", (env) => {
-  if (!program.getOptionValue("json"))
-    try {
-      parsedKeyValues = envParser(env, { verbose: config.verbose || false });
-    } catch (err) {
-      console.error(chalk.red(err));
-      process.exit(-1);
-    }
+  const verbose: boolean = program.opts().verbose;
+  try {
+    parsedKeyValues = envParser(env, { verbose });
+  } catch (err) {
+    console.error(chalk.red(err));
+    process.exit(-1);
+  }
 });
 
 program.on("option:json", (json) => {
-  if (!program.getOptionValue("env"))
-    try {
-      parsedKeyValues = jsonParser(json, { verbose: config.verbose || false });
-    } catch (err) {
-      console.error(chalk.red(err));
-      process.exit(-1);
-    }
+  try {
+    parsedKeyValues = jsonParser(json, { verbose: config.verbose || false });
+  } catch (err) {
+    console.error(chalk.red(err));
+    process.exit(-1);
+  }
 });
 
 program.action(() => {
@@ -331,7 +336,8 @@ async function fn() {
   // check auth and set default owner
 
   try {
-    config.repositoryOwner = (await repoManager.getUserLogin()) || "";
+    if (!config.repositoryOwner)
+      config.repositoryOwner = (await repoManager.getUserLogin()) || "";
 
     if (config.verbose) {
       console.log(
@@ -369,8 +375,3 @@ async function fn() {
     config.repositoryOwner = repoOwner;
   }
 }
-
-// // If no command is provided, show help
-// if (!process.argv.slice(2).length) {
-//   program.outputHelp();
-// }
