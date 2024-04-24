@@ -346,6 +346,7 @@ async function fn() {
   try {
     if (!config.repositoryOwner) {
       config.repositoryOwner = (await repoManager.getUserLogin()) || "";
+      spinner.stop().clear();
 
       if (config.verbose) {
         console.log(

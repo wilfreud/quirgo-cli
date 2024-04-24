@@ -15,6 +15,7 @@ export class RepoManager {
     spinner.stopAndPersist();
     spinner.start("Authenticating...");
     const user = await this.app.rest.users.getAuthenticated();
+    spinner.stop().clear();
     return user.data.login;
   }
 
