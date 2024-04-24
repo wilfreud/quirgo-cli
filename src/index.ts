@@ -176,9 +176,7 @@ varsCommand.action(async () => {
     }
   } catch (err) {
     if (config.verbose) console.error(err);
-    console.error(
-      chalk.red("An error occured; please check the repository infos")
-    );
+    console.error(chalk.red(err));
   }
 });
 
@@ -270,9 +268,7 @@ secretsCommand.action(async () => {
     }
   } catch (err) {
     if (config.verbose) console.error(err);
-    console.error(
-      chalk.red("An error occured; please check the repository infos")
-    );
+    console.error(chalk.red(err));
   }
 });
 program.hook("postAction", () => {
@@ -346,6 +342,7 @@ async function fn() {
   try {
     if (!config.repositoryOwner) {
       config.repositoryOwner = (await repoManager.getUserLogin()) || "";
+      spinner.stop().clear();
 
       if (config.verbose) {
         console.log(
