@@ -2,6 +2,7 @@ import { Configuration } from "@/types/repository-manager";
 import { RepoManager } from "../repository-manager";
 import { input } from "@inquirer/prompts";
 import chalk from "chalk";
+import { spinner } from "../spinner.js";
 
 /**
  * Create a new secret in the repository.
@@ -24,15 +25,18 @@ export async function setSecretFn(
     if (!value) value = await input({ message: "Secret value: " });
     await repoManager?.setRepoSecret(config, name, value);
   } else {
-    Object.keys(parsedKeyValues).map(async (key) => {
-      // here pause the spinner, set the secret, then start the spinner again
-      await repoManager?.setRepoSecret(
-        config,
-        key,
-        parsedKeyValues[key] as string
-      );
-    });
+    await Promise.all(
+      Object.keys(parsedKeyValues).map(async (key) => {
+        // here pause the spinner, set the secret, then start the spinner again
+        await repoManager?.setRepoSecret(
+          config,
+          key,
+          parsedKeyValues[key] as string
+        );
+      })
+    );
   }
+  spinner.stopAndPersist();
   console.log(chalk.green("🍭 Secret(s) set successfully!"));
 }
 
@@ -50,12 +54,15 @@ export async function removeSecretFn(
   name?: string
 ) {
   if (Object.keys(parsedKeyValues).length > 0) {
-    Object.keys(parsedKeyValues).map(async (key) => {
-      await repoManager?.removeRepoSecret(config, key);
-    });
+    await Promise.all(
+      Object.keys(parsedKeyValues).map(async (key) => {
+        await repoManager?.removeRepoSecret(config, key);
+      })
+    );
   } else {
     if (!name) name = await input({ message: "Secret name: " });
     await repoManager?.removeRepoSecret(config, name);
-    console.log(chalk.green("🍭 Secret(s) removed successfully!"));
   }
+  spinner.stopAndPersist();
+  console.log(chalk.green("🍭 Secret(s) removed successfully!"));
 }

@@ -18,26 +18,10 @@ import { KeyValueType } from "./types/parsers.js";
 
 console.log(BANNER);
 
-/**
- * TODO: handle the case when --env/--json is provided
- * TODO: create todolist in README.md
- * TODO: doc -> note feature about default owner if -o not specified
- *
- */
-
 // Declare the program
 const program = new Command();
 
-function errorColor(str: string) {
-  // Add ANSI escape codes to display text in red.
-  return `\x1b[31m${str}\x1b[0m`;
-}
-
 program.configureOutput({
-  // Visibly override write routines as example!
-  // writeOut: (str) => process.stdout.write(`[OUT] ${str}`),
-  // writeErr: (str) => process.stdout.write(str),
-  // Highlight errors in color.
   outputError: (str, write) => write(chalk.red(str)),
 });
 
@@ -71,15 +55,7 @@ program
     new Option("-j, --json <path>", "Path to a JSON file to parse").conflicts(
       "env"
     )
-  )
-  .action((opts) => {
-    const { env, token, repo, owner, json } = opts;
-    if (token) repoManager = new RepoManager(token);
-
-    if (repo) config.repositoryName = repo;
-
-    if (owner) config.repositoryOwner = owner;
-  });
+  );
 
 // Add commands
 const varsCommand = new Command("vars");
@@ -92,10 +68,14 @@ varsCommand
     try {
       await fn();
       const list = await repoManager?.listRepoVariables(config);
-      console.log("Total:", chalk.green(list?.data.total_count));
+      spinner.clear();
       console.table(list?.data.variables);
+      console.log(chalk.bgGreen("Total: " + list?.data.total_count + " "));
     } catch (err) {
-      console.error(chalk.red(err));
+      if (config.verbose) console.error(err);
+      console.error(
+        chalk.red("An error occured; please check the repository infos")
+      );
     }
   });
 varsCommand
@@ -105,7 +85,10 @@ varsCommand
       await fn();
       await createVariableFn(config, repoManager, parsedKeyValues, name, value);
     } catch (err) {
-      console.error(chalk.red(err));
+      if (config.verbose) console.error(err);
+      console.error(
+        chalk.red("An error occured; please check the repository infos")
+      );
     }
   })
   .description("Create a new variable");
@@ -117,7 +100,10 @@ varsCommand
       await fn();
       await updateVariableFn(config, repoManager, parsedKeyValues, name, value);
     } catch (err) {
-      console.error(chalk.red(err));
+      if (config.verbose) console.error(err);
+      console.error(
+        chalk.red("An error occured; please check the repository infos")
+      );
     }
   })
   .description("Update an existing variable");
@@ -129,7 +115,10 @@ varsCommand
       await fn();
       await removeVariableFn(config, repoManager, parsedKeyValues, name);
     } catch (err) {
-      console.error(chalk.red(err));
+      if (config.verbose) console.error(err);
+      console.error(
+        chalk.red("An error occured; please check the repository infos")
+      );
     }
   });
 
@@ -153,11 +142,21 @@ varsCommand.action(async () => {
 
     switch (actionOption) {
       case "list":
-        const variables = await repoManager?.listRepoVariables(config);
-        console.table(variables?.data.variables);
-        console.log(
-          chalk.bgGreen("Total: " + variables?.data.total_count + " ")
-        );
+        try {
+          const variables = await repoManager?.listRepoVariables(config);
+          spinner.clear();
+          console.table(variables?.data.variables);
+          console.log(
+            chalk.bgGreen("Total: " + variables?.data.total_count + " ")
+          );
+        } catch (err) {
+          if (config.verbose) console.error(err);
+          console.error(
+            chalk.red(
+              "An error occured; please check the repository infos (owner & name)"
+            )
+          );
+        }
         break;
 
       case "create":
@@ -176,7 +175,10 @@ varsCommand.action(async () => {
         break;
     }
   } catch (err) {
-    console.error(chalk.red(err));
+    if (config.verbose) console.error(err);
+    console.error(
+      chalk.red("An error occured; please check the repository infos")
+    );
   }
 });
 
@@ -191,10 +193,14 @@ secretsCommand
     try {
       await fn();
       const secs = await repoManager?.listRepoSecrets(config);
+      spinner.clear();
       console.table(secs?.data.secrets);
       console.log(chalk.bgGreen("Total:", secs?.data.total_count));
     } catch (err) {
-      console.error(chalk.red(err));
+      if (config.verbose) console.error(err);
+      console.error(
+        chalk.red("An error occured; please check the repository infos")
+      );
     }
   });
 
@@ -206,7 +212,10 @@ secretsCommand
       await fn();
       await setSecretFn(config, repoManager, parsedKeyValues, name, value);
     } catch (err) {
-      console.error(chalk.red(err));
+      if (config.verbose) console.error(err);
+      console.error(
+        chalk.red("An error occured; please check the repository infos")
+      );
     }
   });
 
@@ -218,7 +227,10 @@ secretsCommand
       await fn();
       await removeSecretFn(config, repoManager, parsedKeyValues, name);
     } catch (err) {
-      console.error(chalk.red(err));
+      if (config.verbose) console.error(err);
+      console.error(
+        chalk.red("An error occured; please check the repository infos")
+      );
     }
   });
 
@@ -240,8 +252,9 @@ secretsCommand.action(async () => {
     switch (actionOption) {
       case "list":
         const secrets = await repoManager?.listRepoSecrets(config);
-        console.table(secrets?.data.secrets);
+        spinner.clear();
         console.log(chalk.bgGreen("Total: " + secrets?.data.total_count + " "));
+        console.table(secrets?.data.secrets);
         break;
 
       case "set":
@@ -256,11 +269,13 @@ secretsCommand.action(async () => {
         break;
     }
   } catch (err) {
-    console.error(chalk.red(err));
+    if (config.verbose) console.error(err);
+    console.error(
+      chalk.red("An error occured; please check the repository infos")
+    );
   }
 });
 program.hook("postAction", () => {
-  console.log("Command executed successfully 🚀");
   spinner.stop().clear();
 });
 
@@ -286,23 +301,22 @@ program.on("option:owner", (owner) => {
 });
 
 program.on("option:env", (env) => {
-  if (!program.getOptionValue("json"))
-    try {
-      parsedKeyValues = envParser(env, { verbose: config.verbose || false });
-    } catch (err) {
-      console.error(chalk.red(err));
-      process.exit(-1);
-    }
+  const verbose: boolean = program.opts().verbose;
+  try {
+    parsedKeyValues = envParser(env, { verbose });
+  } catch (err) {
+    console.error(chalk.red(err));
+    process.exit(-1);
+  }
 });
 
 program.on("option:json", (json) => {
-  if (!program.getOptionValue("env"))
-    try {
-      parsedKeyValues = jsonParser(json, { verbose: config.verbose || false });
-    } catch (err) {
-      console.error(chalk.red(err));
-      process.exit(-1);
-    }
+  try {
+    parsedKeyValues = jsonParser(json, { verbose: config.verbose || false });
+  } catch (err) {
+    console.error(chalk.red(err));
+    process.exit(-1);
+  }
 });
 
 program.action(() => {
@@ -329,16 +343,17 @@ async function fn() {
   }
 
   // check auth and set default owner
-
   try {
-    config.repositoryOwner = (await repoManager.getUserLogin()) || "";
+    if (!config.repositoryOwner) {
+      config.repositoryOwner = (await repoManager.getUserLogin()) || "";
 
-    if (config.verbose) {
-      console.log(
-        chalk.cyan("-> Using"),
-        chalk.bgBlueBright(config.repositoryOwner),
-        chalk.cyan("as default repository owner")
-      );
+      if (config.verbose) {
+        console.log(
+          chalk.cyan("-> Using"),
+          chalk.bgBlueBright(config.repositoryOwner),
+          chalk.cyan("as default repository owner")
+        );
+      }
     }
   } catch (err: any) {
     console.error(
@@ -369,8 +384,3 @@ async function fn() {
     config.repositoryOwner = repoOwner;
   }
 }
-
-// // If no command is provided, show help
-// if (!process.argv.slice(2).length) {
-//   program.outputHelp();
-// }

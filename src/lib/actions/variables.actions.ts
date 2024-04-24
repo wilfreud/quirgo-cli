@@ -2,6 +2,7 @@ import { Configuration } from "@/types/repository-manager";
 import { RepoManager } from "../repository-manager";
 import { input } from "@inquirer/prompts";
 import chalk from "chalk";
+import { spinner } from "../spinner.js";
 
 /**
  * Create a new variable in the repository.
@@ -24,14 +25,16 @@ export async function createVariableFn(
 
   Object.keys(parsedKeyValues).length === 0
     ? await repoManager?.createRepoVariable(config, name, value)
-    : Object.keys(parsedKeyValues).map(async (key) => {
-        await repoManager?.createRepoVariable(
-          config,
-          key,
-          parsedKeyValues[key] as string
-        );
-      });
-
+    : await Promise.all(
+        Object.keys(parsedKeyValues).map(async (key) => {
+          await repoManager?.createRepoVariable(
+            config,
+            key,
+            parsedKeyValues[key] as string
+          );
+        })
+      );
+  spinner.stopAndPersist();
   console.log(chalk.green("🍭 Variable(s) created successfully!"));
 }
 
@@ -51,19 +54,22 @@ export async function updateVariableFn(
   value?: string
 ) {
   if (Object.keys(parsedKeyValues).length > 0) {
-    Object.keys(parsedKeyValues).map(async (key) => {
-      await repoManager?.updateRepoVariable(
-        config,
-        key,
-        parsedKeyValues[key] as string
-      );
-    });
+    await Promise.all(
+      Object.keys(parsedKeyValues).map(async (key) => {
+        await repoManager?.updateRepoVariable(
+          config,
+          key,
+          parsedKeyValues[key] as string
+        );
+      })
+    );
   } else {
     if (!name) name = await input({ message: "Variable name: " });
     if (!value) value = await input({ message: "Variable value: " });
 
     await repoManager?.updateRepoVariable(config, name, value);
   }
+  spinner.stopAndPersist();
   console.log(chalk.green("🍭 Variable(s) updated successfully!"));
 }
 
@@ -82,12 +88,15 @@ export async function removeVariableFn(
   name?: string
 ) {
   if (Object.keys(parsedKeyValues).length > 0) {
-    Object.keys(parsedKeyValues).map(async (key) => {
-      await repoManager?.removeRepoVariable(config, key);
-    });
+    await Promise.all(
+      Object.keys(parsedKeyValues).map(async (key) => {
+        await repoManager?.removeRepoVariable(config, key);
+      })
+    );
   } else {
     if (!name) name = await input({ message: "Variable name: " });
     await repoManager?.removeRepoVariable(config, name);
   }
+  spinner.stopAndPersist();
   console.log(chalk.green("🍭 Variable(s) removed successfully!"));
 }
