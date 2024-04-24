@@ -18,26 +18,10 @@ import { KeyValueType } from "./types/parsers.js";
 
 console.log(BANNER);
 
-/**
- * TODO: handle the case when --env/--json is provided
- * TODO: create todolist in README.md
- * TODO: doc -> note feature about default owner if -o not specified
- *
- */
-
 // Declare the program
 const program = new Command();
 
-function errorColor(str: string) {
-  // Add ANSI escape codes to display text in red.
-  return `\x1b[31m${str}\x1b[0m`;
-}
-
 program.configureOutput({
-  // Visibly override write routines as example!
-  // writeOut: (str) => process.stdout.write(`[OUT] ${str}`),
-  // writeErr: (str) => process.stdout.write(str),
-  // Highlight errors in color.
   outputError: (str, write) => write(chalk.red(str)),
 });
 
@@ -88,7 +72,10 @@ varsCommand
       console.table(list?.data.variables);
       console.log(chalk.bgGreen("Total: " + list?.data.total_count + " "));
     } catch (err) {
-      console.error(chalk.red(err));
+      if (config.verbose) console.error(err);
+      console.error(
+        chalk.red("An error occured; please check the repository infos")
+      );
     }
   });
 varsCommand
@@ -98,7 +85,10 @@ varsCommand
       await fn();
       await createVariableFn(config, repoManager, parsedKeyValues, name, value);
     } catch (err) {
-      console.error(chalk.red(err));
+      if (config.verbose) console.error(err);
+      console.error(
+        chalk.red("An error occured; please check the repository infos")
+      );
     }
   })
   .description("Create a new variable");
@@ -110,7 +100,10 @@ varsCommand
       await fn();
       await updateVariableFn(config, repoManager, parsedKeyValues, name, value);
     } catch (err) {
-      console.error(chalk.red(err));
+      if (config.verbose) console.error(err);
+      console.error(
+        chalk.red("An error occured; please check the repository infos")
+      );
     }
   })
   .description("Update an existing variable");
@@ -122,7 +115,10 @@ varsCommand
       await fn();
       await removeVariableFn(config, repoManager, parsedKeyValues, name);
     } catch (err) {
-      console.error(chalk.red(err));
+      if (config.verbose) console.error(err);
+      console.error(
+        chalk.red("An error occured; please check the repository infos")
+      );
     }
   });
 
@@ -179,7 +175,10 @@ varsCommand.action(async () => {
         break;
     }
   } catch (err) {
-    console.error(chalk.red(err));
+    if (config.verbose) console.error(err);
+    console.error(
+      chalk.red("An error occured; please check the repository infos")
+    );
   }
 });
 
@@ -200,9 +199,7 @@ secretsCommand
     } catch (err) {
       if (config.verbose) console.error(err);
       console.error(
-        chalk.red(
-          "An error occured; please check the repository infos (owner & name)"
-        )
+        chalk.red("An error occured; please check the repository infos")
       );
     }
   });
@@ -215,7 +212,10 @@ secretsCommand
       await fn();
       await setSecretFn(config, repoManager, parsedKeyValues, name, value);
     } catch (err) {
-      console.error(chalk.red(err));
+      if (config.verbose) console.error(err);
+      console.error(
+        chalk.red("An error occured; please check the repository infos")
+      );
     }
   });
 
@@ -227,7 +227,10 @@ secretsCommand
       await fn();
       await removeSecretFn(config, repoManager, parsedKeyValues, name);
     } catch (err) {
-      console.error(chalk.red(err));
+      if (config.verbose) console.error(err);
+      console.error(
+        chalk.red("An error occured; please check the repository infos")
+      );
     }
   });
 
@@ -266,7 +269,10 @@ secretsCommand.action(async () => {
         break;
     }
   } catch (err) {
-    console.error(chalk.red(err));
+    if (config.verbose) console.error(err);
+    console.error(
+      chalk.red("An error occured; please check the repository infos")
+    );
   }
 });
 program.hook("postAction", () => {
