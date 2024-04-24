@@ -4,14 +4,6 @@ import sodium from "libsodium-wrappers";
 import { OctokitResponse } from "@octokit/types";
 import { spinner } from "./spinner.js";
 
-/**
- * TODO: REFACTOR -> rwrite methods with rest requests
- * Faster & shorter
- * Tag commit as "refactor"
- * TODO: check returnTypes
- * TODO: different request methods for variables
- */
-
 export class RepoManager {
   private app: Octokit;
 
@@ -20,6 +12,8 @@ export class RepoManager {
   }
 
   public async getUserLogin(): Promise<string | null> {
+    spinner.stopAndPersist();
+    spinner.start("Authenticating...");
     const user = await this.app.rest.users.getAuthenticated();
     return user.data.login;
   }
@@ -32,7 +26,8 @@ export class RepoManager {
   public async listRepoVariables(
     config: Configuration
   ): Promise<ReturnType<typeof this.app.rest.actions.listRepoVariables>> {
-    spinner.start("Fetching repository variables...\n");
+    spinner.stopAndPersist();
+    spinner.start("Fetching repository variables...");
     return await this.app.rest.actions.listRepoVariables({
       owner: config.repositoryOwner,
       repo: config.repositoryName,
@@ -53,16 +48,14 @@ export class RepoManager {
     variableName: string,
     variableValue: string
   ): Promise<OctokitResponse<any>> {
-    spinner.start(`Creating variable <${variableName}>...\n`);
-    return await this.app.request(
-      "POST /repos/{owner}/{repo}/actions/variables",
-      {
-        owner: config.repositoryOwner,
-        repo: config.repositoryName,
-        name: variableName,
-        value: variableValue,
-      }
-    );
+    spinner.stopAndPersist();
+    spinner.start(`Creating variable: ${variableName}...`);
+    return await this.app.rest.actions.createRepoVariable({
+      name: variableName,
+      value: variableValue,
+      owner: config.repositoryOwner,
+      repo: config.repositoryName,
+    });
   }
 
   /**
@@ -79,16 +72,14 @@ export class RepoManager {
     variableName: string,
     variableValue: string
   ): Promise<OctokitResponse<any>> {
-    spinner.start(`Updating variable <${variableName}>...\n`);
-    return await this.app.request(
-      "PATCH /repos/{owner}/{repo}/actions/variables/{name}",
-      {
-        owner: config.repositoryOwner,
-        repo: config.repositoryName,
-        name: variableName,
-        value: variableValue,
-      }
-    );
+    spinner.stopAndPersist();
+    spinner.start(`Updating variable: ${variableName}...`);
+    return await this.app.rest.actions.updateRepoVariable({
+      owner: config.repositoryOwner,
+      repo: config.repositoryName,
+      name: variableName,
+      value: variableValue,
+    });
   }
 
   /**
@@ -101,7 +92,8 @@ export class RepoManager {
     config: Configuration,
     variableName: string
   ): Promise<OctokitResponse<any>> {
-    spinner.start(`Removing variable <${variableName}>...\n`);
+    spinner.stopAndPersist();
+    spinner.start(`Removing variable: ${variableName}...`);
     return await this.app.rest.actions.deleteRepoVariable({
       owner: config.repositoryOwner,
       repo: config.repositoryName,
@@ -118,8 +110,8 @@ export class RepoManager {
   public async listRepoSecrets(
     config: Configuration
   ): Promise<ReturnType<typeof this.app.rest.actions.listRepoSecrets>> {
-    console.log("Config:", config);
-    spinner.start("Fetching repository secrets...\n");
+    spinner.stopAndPersist();
+    spinner.start("Fetching repository secrets...");
     return await this.app.rest.actions.listRepoSecrets({
       owner: config.repositoryOwner,
       repo: config.repositoryName,
@@ -139,7 +131,9 @@ export class RepoManager {
     secretName: string,
     secretValue: string
   ): Promise<OctokitResponse<any>> {
-    spinner.start(`Setting secret <${secretName}>...\n`);
+    spinner.stopAndPersist();
+    spinner.start(`Setting secret: ${secretName}...`);
+
     // get repo public key
     const encryptedValue = await this.app.rest.actions.getRepoPublicKey({
       owner: config.repositoryOwner,
@@ -185,7 +179,8 @@ export class RepoManager {
     config: Configuration,
     secretName: string
   ): Promise<OctokitResponse<any>> {
-    spinner.start(`Removing secret <${secretName}>...\n`);
+    spinner.stopAndPersist();
+    spinner.start(`Removing secret: ${secretName}...`);
     return await this.app.rest.actions.deleteRepoSecret({
       owner: config.repositoryOwner,
       repo: config.repositoryName,

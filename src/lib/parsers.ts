@@ -37,19 +37,10 @@ export function jsonParser(
   filepath: string,
   config?: ParserConfig
 ): KeyValueType {
-  let obj: KeyValueType = {};
+  let filecontent: KeyValueType = {};
   try {
     const file = readFileSync(filepath, "utf-8");
-    const fileContent: KeyValueType = JSON.parse(file);
-    const doesTypeMatch = Object.values(fileContent).every(
-      (value: any) => typeof value === "string"
-    );
-    if (!doesTypeMatch)
-      throw new Error(
-        "Invalid shape of json file. Please refer to the documentation for more details"
-      );
-
-    obj = fileContent;
+    filecontent = JSON.parse(file);
   } catch (err) {
     if (config?.verbose) console.error(err);
     throw new Error(
@@ -57,5 +48,5 @@ export function jsonParser(
     );
   }
 
-  return obj;
+  return filecontent;
 }

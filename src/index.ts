@@ -84,8 +84,9 @@ varsCommand
     try {
       await fn();
       const list = await repoManager?.listRepoVariables(config);
-      console.log("Total:", chalk.green(list?.data.total_count));
+      spinner.clear();
       console.table(list?.data.variables);
+      console.log(chalk.bgGreen("Total: " + list?.data.total_count + " "));
     } catch (err) {
       console.error(chalk.red(err));
     }
@@ -147,6 +148,7 @@ varsCommand.action(async () => {
       case "list":
         try {
           const variables = await repoManager?.listRepoVariables(config);
+          spinner.clear();
           console.table(variables?.data.variables);
           console.log(
             chalk.bgGreen("Total: " + variables?.data.total_count + " ")
@@ -192,6 +194,7 @@ secretsCommand
     try {
       await fn();
       const secs = await repoManager?.listRepoSecrets(config);
+      spinner.clear();
       console.table(secs?.data.secrets);
       console.log(chalk.bgGreen("Total:", secs?.data.total_count));
     } catch (err) {
@@ -246,8 +249,9 @@ secretsCommand.action(async () => {
     switch (actionOption) {
       case "list":
         const secrets = await repoManager?.listRepoSecrets(config);
-        console.table(secrets?.data.secrets);
+        spinner.clear();
         console.log(chalk.bgGreen("Total: " + secrets?.data.total_count + " "));
+        console.table(secrets?.data.secrets);
         break;
 
       case "set":
@@ -266,7 +270,6 @@ secretsCommand.action(async () => {
   }
 });
 program.hook("postAction", () => {
-  console.log("Command executed successfully 🚀");
   spinner.stop().clear();
 });
 
@@ -334,17 +337,17 @@ async function fn() {
   }
 
   // check auth and set default owner
-
   try {
-    if (!config.repositoryOwner)
+    if (!config.repositoryOwner) {
       config.repositoryOwner = (await repoManager.getUserLogin()) || "";
 
-    if (config.verbose) {
-      console.log(
-        chalk.cyan("-> Using"),
-        chalk.bgBlueBright(config.repositoryOwner),
-        chalk.cyan("as default repository owner")
-      );
+      if (config.verbose) {
+        console.log(
+          chalk.cyan("-> Using"),
+          chalk.bgBlueBright(config.repositoryOwner),
+          chalk.cyan("as default repository owner")
+        );
+      }
     }
   } catch (err: any) {
     console.error(
