@@ -21,7 +21,7 @@
     "lint": "tsc"
   },
   "keywords": [],
-  "author": "wilfreud",
+  "author": "Commodore64",
   "license": "MIT",
   "dependencies": {
     "@inquirer/prompts": "^4.3.2",
