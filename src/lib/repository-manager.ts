@@ -15,7 +15,10 @@ export class RepoManager {
     spinner.stopAndPersist();
     spinner.start("Authenticating...");
     const user = await this.app.rest.users.getAuthenticated();
-    spinner.stop().clear();
+    spinner.stopAndPersist({
+      symbol: "✔️",
+      text: "Authenticated",
+    });
     return user.data.login;
   }
 
