@@ -1,5 +1,15 @@
 # quirgo
 
+## 0.0.4
+
+### Patch Changes
+
+- 38b24e3: Minor changes
+
+  - Few adjustments on console spinner
+  - improved documentation
+  - small "optimizations"
+
 ## 0.0.3
 
 ### Patch Changes
