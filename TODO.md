@@ -4,6 +4,7 @@
 - Consider writing tests (unit tests)
 - Add a mini logger lib file
 - Handle verbose properly
+- add feature for ssh keys linking 
 
 ## From feedback
 
