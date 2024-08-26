@@ -4,6 +4,7 @@
 - Consider writing tests (unit tests)
 - Add a mini logger lib file
 - Handle verbose properly
+- auto detect project name from package.json or maybe more, and suggest as repo name
 
 ## From feedback
 
